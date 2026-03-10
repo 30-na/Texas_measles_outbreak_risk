@@ -14,7 +14,7 @@ texas_flows <- read_csv("ProcessedData/texas_county_flows_2019.csv",
 
 # Set vaccine efficacy and basic reproduction number
 efficacy <- 0.97
-R0 <- 12
+R0 <- 18
 
 
 map_data <- map_data %>%
@@ -94,10 +94,10 @@ find_internal_infection_lin <- function(v, R0_value = R0, tol = 1e-4) {
 
 
 # Apply function to MMR values
-map_data$internal_infection_prob <- sapply(map_data$MMR, find_internal_infection_PLOS)
-map_data$internal_infection_prob1 <- sapply(map_data$MMR1, find_internal_infection_PLOS)
-map_data$internal_infection_prob2 <- sapply(map_data$MMR2, find_internal_infection_PLOS)
-map_data$internal_infection_prob3 <- sapply(map_data$MMR3, find_internal_infection_PLOS)
+map_data$internal_infection_prob <- sapply(map_data$MMR, find_internal_infection_lin)
+map_data$internal_infection_prob1 <- sapply(map_data$MMR1, find_internal_infection_lin)
+map_data$internal_infection_prob2 <- sapply(map_data$MMR2, find_internal_infection_lin)
+map_data$internal_infection_prob3 <- sapply(map_data$MMR3, find_internal_infection_lin)
 
 
 
@@ -151,9 +151,13 @@ contact_method7 <- function(flows_avg) {
 flows_avg <- texas_flows %>%
   mutate(
     pop_flows = as.numeric(pop_flows),
+    visitor_flows = as.numeric(visitor_flows),
     week_start = mdy(str_sub(date_range, 1, 8))
   ) %>%
-  # filter(month(week_start) >= 1 & month(week_start) <= 6) %>%
+  filter(
+     week_start >= as.Date("2019-01-15"),
+     week_start <= as.Date("2019-08-15")
+  ) %>%
   group_by(
     geoid_o,
     geoid_d, 
@@ -194,7 +198,11 @@ compute_transmission_matrix <- function(Cij, map_data, strategy = 0, q = 0.9) {
         psi[which(county_names == name_i)] *
         pmo[which(county_names == name_i)]
       
-      cij_val <- Cij[name_i, name_j]
+      # j -> i
+      # cij_val <- Cij[name_i, name_j]
+      
+      # i -> j
+        cij_val <- Cij[name_j, name_i]
       
       if (is.na(cij_val)) {
         transmission_mat[name_i, name_j] <- NA

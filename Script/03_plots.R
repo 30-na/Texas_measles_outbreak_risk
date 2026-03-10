@@ -7,6 +7,13 @@ library(tidyr)
 
 map_probability <- readRDS("ProcessedData/map_probability.rds")
 
+names(map_probability)
+
+# g <- ggplot(map_probability) +
+#   geom_sf(aes(fill = internal_infection_prob ), color = "gray40", size = 0.1) +
+#   scale_fill_gradient(low = "white", high = "blue")
+# 
+
 
 
 compute_indirect_risk <- function(
@@ -112,7 +119,7 @@ figure01 <- function(
   row_plot <- plot_grid(p1, p2_clean, nrow = 1, rel_widths = c(1, 1))
   final_plot <- plot_grid(row_plot, legend, nrow = 1, rel_widths = c(2, 0.4))
   
-  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_Plos_Ro12.png")
+  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_Ro18.png")
   ggsave(file_name, final_plot, width = 12, height = 6, dpi = 400)
   
 }
