@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+ProcessedData/
+/weekly_flows/
