@@ -128,7 +128,7 @@ tx_counties_mmr <- left_join(
 
 
 # Get the population
-county_pop <- read_csv("rawData/Counties_pop.txt") %>%
+county_pop <- read_csv("RawData/counties_pop.txt") %>%
   mutate(
     FENAME = case_when(
       FENAME == "DE WITT" ~ "DEWITT",

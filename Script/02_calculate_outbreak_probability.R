@@ -14,7 +14,7 @@ texas_flows <- read_csv("ProcessedData/texas_county_flows_2019.csv",
 
 # Set vaccine efficacy and basic reproduction number
 efficacy <- 0.97
-R0 <- 18
+R0 <- 12
 
 
 map_data <- map_data %>%
@@ -69,22 +69,35 @@ cat("Number of counties reaching threshold:\n")
 cat(sprintf("  To ≥90%% (Strategy 1): %d counties\n", counties_to_90))
 cat(sprintf("  To ≥92%% (Strategy 2): %d counties\n", counties_to_92))
 
+# Internal Infection Proportion Functions (Final outbreak size P^I) ----
 
-# Define function for Final outbreak size (internal infection probability) P^I
-find_internal_infection_numeric <- function(Vj, efficacy_rate = efficacy, R0 = 18, tol = 1e-4) {
+
+# PLOS
+find_internal_infection_PLOS <- function(Vj, efficacy_rate = efficacy, R0_value = R0, tol = 1e-4) {
   if (is.na(Vj)) return(NA_real_)
   a <- 1 - efficacy_rate * Vj
   X_vals <- seq(0, 1, length.out = 10000)
-  f_X <- X_vals - a * (1 - exp(-a * R0 * X_vals))
+  f_X <- X_vals - a * (1 - exp(-a * R0_value * X_vals))
   close_to_zero <- abs(f_X) < tol
   return(max(X_vals[close_to_zero]))
 }
 
+# Interface (Lin. , Equation: 2.4)
+find_internal_infection_lin <- function(v, R0_value = R0, tol = 1e-4) {
+  if (is.na(v)) return(NA_real_)
+  a <- 1 - v
+  X_vals <- seq(0, 1, length.out = 10000)
+  f_X <- X_vals - a * (1 - exp(-R0_value * X_vals))
+  close_to_zero <- abs(f_X) < tol
+  return(max(X_vals[close_to_zero]))
+}
+
+
 # Apply function to MMR values
-map_data$internal_infection_prob <- sapply(map_data$MMR, find_internal_infection_numeric)
-map_data$internal_infection_prob1 <- sapply(map_data$MMR1, find_internal_infection_numeric)
-map_data$internal_infection_prob2 <- sapply(map_data$MMR2, find_internal_infection_numeric)
-map_data$internal_infection_prob3 <- sapply(map_data$MMR3, find_internal_infection_numeric)
+map_data$internal_infection_prob <- sapply(map_data$MMR, find_internal_infection_PLOS)
+map_data$internal_infection_prob1 <- sapply(map_data$MMR1, find_internal_infection_PLOS)
+map_data$internal_infection_prob2 <- sapply(map_data$MMR2, find_internal_infection_PLOS)
+map_data$internal_infection_prob3 <- sapply(map_data$MMR3, find_internal_infection_PLOS)
 
 
 
@@ -182,6 +195,7 @@ compute_transmission_matrix <- function(Cij, map_data, strategy = 0, q = 0.9) {
         pmo[which(county_names == name_i)]
       
       cij_val <- Cij[name_i, name_j]
+      
       if (is.na(cij_val)) {
         transmission_mat[name_i, name_j] <- NA
       } else {

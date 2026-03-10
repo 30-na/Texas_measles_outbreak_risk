@@ -16,10 +16,11 @@ compute_indirect_risk <- function(
 ) {
   
   j <- toupper(county_name)  # source county j
+  
   if (!(j %in% colnames(trans_mat))) stop("Source county not found in colnames(trans_mat).")
   
   i_names <- rownames(trans_mat)
-  P_ij <- trans_mat[, j]   # j -> i
+  P_ij <- trans_mat[ ,j]   # j -> i
   
   k_all <- names(P_ij)[!is.na(P_ij) & P_ij >= threshold & names(P_ij) != j]
   
@@ -44,9 +45,6 @@ compute_indirect_risk <- function(
   P_sg[j] <- NA_real_  # self county not shown
   P_sg
 }
-
-
-
 
 
 
@@ -114,11 +112,89 @@ figure01 <- function(
   row_plot <- plot_grid(p1, p2_clean, nrow = 1, rel_widths = c(1, 1))
   final_plot <- plot_grid(row_plot, legend, nrow = 1, rel_widths = c(2, 0.4))
   
-  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen.png")
+  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_Plos_Ro12.png")
   ggsave(file_name, final_plot, width = 12, height = 6, dpi = 400)
   
 }
 
 
 figure01()
+
+
+
+######################
+
+figure_S01 <- function(map_data = map_probability, out_dir = "Figures/") {
+  
+  dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  color_mmr <- c("#d73027", "#fee08b", "#1a9850")     # for baseline MMR
+  color_increase <- c("white", "#1a9850")             # for MMR increases
+  
+  # Compute increases (clamped)
+  map_data <- map_data %>%
+    mutate(
+      delta_mmr1 = (MMR1 - MMR) * 100,
+      delta_mmr2 = (MMR2 - MMR) * 100,
+      delta_mmr3 = (MMR3 - MMR) * 100
+    )
+  
+  plots <- list(
+    ggplot(map_data) +
+      geom_sf(aes(fill = MMR), color = "gray40", size = 0.1) +
+      scale_fill_gradientn(
+        colors = color_mmr,
+        limits = c(0.8, 1),
+        name = "MMR"
+      ) +
+      labs(title = "A: Baseline MMR (%)") +
+      theme_void() +
+      theme(plot.title = element_text(hjust = 0.5, size = 13)),
+    
+    ggplot(map_data) +
+      geom_sf(aes(fill = delta_mmr1), color = "gray40", size = 0.1) +
+      scale_fill_gradientn(
+        colors = color_increase, 
+        limits = c(0, 20), 
+        name = "Increase in MMR (%)"
+      ) +
+      labs(title = "B: MMR Vaccine Rate Increase by Strategy 01") +
+      theme_void() +
+      theme(plot.title = element_text(hjust = 0.5, size = 13)),
+    
+    ggplot(map_data) +
+      geom_sf(aes(fill = delta_mmr2), color = "gray40", size = 0.1) +
+      scale_fill_gradientn(
+        colors = color_increase, 
+        limits = c(0, 20), 
+        name = "Increase in MMR (%)"
+      ) +
+      labs(title = "C: MMR Vaccine Rate Increase by Strategy 02") +
+      theme_void() +
+      theme(plot.title = element_text(hjust = 0.5, size = 13)),
+    
+    ggplot(map_data) +
+      geom_sf(aes(fill = delta_mmr3), color = "gray40", size = 0.1) +
+      scale_fill_gradientn(
+        colors = color_increase, 
+        #limits = c(0, 0.2),
+        name = "Increase in MMR (%)"
+      ) +
+      labs(title = "D: MMR Vaccine Rate Increase by Strategy 03") +
+      theme_void() +
+      theme(plot.title = element_text(hjust = 0.5, size = 13))
+  )
+  
+  grid <- plot_grid(plotlist = plots, ncol = 2, align = "hv")
+  
+  file_name <- paste0(out_dir, "Figure_S1_mmr_and_increase.png")
+  ggsave(file_name, grid, width = 12, height = 10, dpi = 400)
+  
+  return(grid)
+}
+
+
+
+figure_S01(map_data = map_probability)
+
 
