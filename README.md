@@ -47,41 +47,31 @@ Four vaccination scenarios are analyzed:
 - **Strategy 2**: Sets all counties with MMR < 92% to exactly 92%.
 - **Strategy 3**: Increases all MMR rates by 5%, capped at 100%.
 
-These strategies are implemented in `calculate_outbreak_probability.R`.
+These strategies are implemented in `02-calculate_outbreak_probability.R`.
 
 ## Modeling Process
 
 - **Susceptible Population**: Calculated from MMR coverage and vaccine efficacy (97%).
 - **Outbreak Probability**: Probability of large outbreaks in each county.
 - **Internal Infection Probability**: Solves an implicit equation for the attack rate.
-- **Contact Matrices**:
-  -  Gravity model based on population and distance
-  -  Empirical 2019 mobility flow data
-
+- **Contact Matrices**: Empirical 2019 mobility flow data
 - **Transmission Probability**:
-  \( p_{ij} = 1 - (1 - q \cdot P_j^I \cdot p_i^s \cdot p_i^{mo})^{C_{ij}} \)  
+  $p_{ij} = 1 - (1 - (q \cdot P_j^I \cdot p_i^s \cdot p_i^{mo}))^{C_{ij}}$  
   where \( q = 0.9 \)
 
 ## Main Scripts
 
-- `read_clean_merge_data.R`:  
+- `01_read_clean_merge_data.R`:  
   Prepares the cleaned datasets, merges vaccination and population info, computes distance matrices, and saves them.
 
-- `calculate_outbreak_probability.R`:  
+- `02_calculate_outbreak_probability.R`:  
   Implements the epidemiological model and calculates transmission probabilities under each strategy and method.
 
-- `plots.R`:  
+- `03_plots.R`:  
   Generates maps and histograms for transmission probability and population at risk, under each strategy and method.
 
 ## Outputs
 
-- **ProcessedData/**:
-  - `map_county.rds`: County-level merged data
-  - `distance_matrix_haversine_county.rds`: Distance matrix
-  - `pij_M*.rds`: Transmission matrices for all methods and strategies
 
-- **Figures/county_transmission/**:
-  - Transmission risk maps per county
-  - Histograms of risk values and population at risk
 
 
