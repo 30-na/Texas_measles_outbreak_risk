@@ -85,7 +85,7 @@ find_internal_infection_PLOS <- function(Vj, efficacy_rate = efficacy, R0_value 
 # Interface (Lin. , Equation: 2.4)
 find_internal_infection_lin <- function(v, R0_value = R0, tol = 1e-4, efficacy_rate = efficacy) {
   if (is.na(v)) return(NA_real_)
-  a <- 1 - (v) 
+  a <- 1 - (efficacy_rate * v) 
   X_vals <- seq(0, 1, length.out = 10000)
   f_X <- X_vals - a * (1 - exp(-R0_value * X_vals))
   close_to_zero <- abs(f_X) < tol

@@ -7,13 +7,6 @@ library(tidyr)
 
 map_probability <- readRDS("ProcessedData/map_probability.rds")
 
-names(map_probability)
-
-# g <- ggplot(map_probability) +
-#   geom_sf(aes(fill = internal_infection_prob ), color = "gray40", size = 0.1) +
-#   scale_fill_gradient(low = "white", high = "blue")
-# 
-
 
 
 compute_indirect_risk <- function(
@@ -119,7 +112,7 @@ figure01 <- function(
   row_plot <- plot_grid(p1, p2_clean, nrow = 1, rel_widths = c(1, 1))
   final_plot <- plot_grid(row_plot, legend, nrow = 1, rel_widths = c(2, 0.4))
   
-  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_lin_Ro18_visitores_ji.png")
+  file_name <- paste0(out_dir, "figure01_outbreak_1st_2ndGen.png")
   ggsave(file_name, final_plot, width = 12, height = 6, dpi = 400)
   
 }
@@ -205,3 +198,78 @@ figure_S01 <- function(map_data = map_probability, out_dir = "Figures/") {
 figure_S01(map_data = map_probability)
 
 
+
+#######################
+
+figure02 <- function(method = 7, counties = c("Gaines"), strategies = c(1, 2, 3),
+                     map_data = map_probability, threshold = 0.5, out_dir = "Figures/") {
+  
+  dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  color_palette <- c("white", "#1a9850")  # white to green
+  county_names <- toupper(map_data$County)
+  
+  full_labels <- c(
+    "Strategy 0: Baseline",
+    "Strategy 1: MMR < 90% → 90%", 
+    "Strategy 2: MMR < 92% → 92%", 
+    "Strategy 3: MMR +5%",
+    "Strategy 4: Gaines → 90%",
+    "Strategy 5: Gaines → 92%"
+  )
+  
+  strategy_labels <- full_labels[strategies + 1]
+  label_prefix <- LETTERS[seq_along(strategies)]
+  
+  baseline_mat <- readRDS(paste0("ProcessedData/pij_M", method, "_S0.rds"))
+  
+  for (county in counties) {
+    county_upper <- toupper(county)
+    highlighted_geom <- map_data %>% filter(toupper(County) == county_upper)
+    baseline_vec <- compute_indirect_risk(baseline_mat, county_name = county_upper, threshold = threshold)
+    
+    maps <- list()
+    
+    for (i in seq_along(strategies)) {
+      s <- strategies[i]
+      mat <- readRDS(paste0("ProcessedData/pij_M", method, "_S", s, ".rds"))
+      vec <- compute_indirect_risk(mat, county_name = county_upper, threshold = threshold)
+      reduction <- (baseline_vec - vec) * 100
+      reduction[reduction < 0] <- 0
+      
+      map_data$reduction <- reduction[match(toupper(map_data$County), names(reduction))]
+      
+      p <- ggplot(map_data) +
+        geom_sf(aes(fill = reduction), color = "gray40", size = 0.1) +
+        geom_sf(data = highlighted_geom, fill = "blue", color = "black", size = 0.3) +
+        scale_fill_gradient(
+          low = "white", high = "#1a9850", limits = c(0, max(reduction, na.rm = TRUE)),
+          name = "Reduction in\nOutbreak Probability (%)", na.value = "gray80"
+        ) +
+        labs(title = paste0(label_prefix[i], ": ", strategy_labels[i])) +
+        theme_void() +
+        theme(
+          plot.title = element_text(hjust = 0.5, size = 13),
+          legend.position = "none"
+        )
+      
+      maps[[i]] <- p
+    }
+    
+    legend <- get_legend(
+      maps[[1]] + theme(legend.position = "right", legend.title = element_text(size = 10))
+    )
+    
+    row_plot <- plot_grid(plotlist = lapply(maps, \(p) p + theme(legend.position = "none")), nrow = 1)
+    final_plot <- plot_grid(row_plot, legend, nrow = 1, rel_widths = c(length(maps), 0.4))
+    
+    file_name <- paste0(out_dir, "figure02_reduction", tolower(county), "_method", method, "_S", paste(strategies, collapse = "_"), ".png")
+    ggsave(file_name, final_plot, width = 6 * length(maps), height = 6, dpi = 400)
+  }
+}
+
+
+
+figure02(method = 7, counties = c("Gaines"), strategies = c(1, 2, 3), map_data = map_probability, threshold = 0.5)
+
+######################
