@@ -85,7 +85,7 @@ find_internal_infection_PLOS <- function(Vj, efficacy_rate = efficacy, R0_value 
 # Interface (Lin. , Equation: 2.4)
 find_internal_infection_lin <- function(v, R0_value = R0, tol = 1e-4, efficacy_rate = efficacy) {
   if (is.na(v)) return(NA_real_)
-  a <- 1 - (efficacy_rate * v) 
+  a <- 1 - (v) 
   X_vals <- seq(0, 1, length.out = 10000)
   f_X <- X_vals - a * (1 - exp(-R0_value * X_vals))
   close_to_zero <- abs(f_X) < tol
@@ -155,8 +155,8 @@ flows_avg <- texas_flows %>%
     week_start = mdy(str_sub(date_range, 1, 8))
   ) %>%
   filter(
-     #week_start >= as.Date("2019-01-15"),
-     # week_start <= as.Date("2019-08-15")
+     week_start >= as.Date("2019-01-15"),
+     week_start <= as.Date("2019-08-15")
   ) %>%
   group_by(
     geoid_o,
@@ -199,10 +199,10 @@ compute_transmission_matrix <- function(Cij, map_data, strategy = 0, q = 0.9) {
         pmo[which(county_names == name_i)]
       
         # j -> i
-        cij_val <- Cij[name_i, name_j]
+        # cij_val <- Cij[name_i, name_j]
       
         # i -> j
-        #cij_val <- Cij[name_j, name_i]
+        cij_val <- Cij[name_j, name_i]
       
       if (is.na(cij_val)) {
         transmission_mat[name_i, name_j] <- NA

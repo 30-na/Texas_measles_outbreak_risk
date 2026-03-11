@@ -4,14 +4,14 @@ library(readxl)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(fuzzyjoin)
+#(fuzzyjoin)
 library(tigris)
 library(sf)
 library(stringdist)
 library(purrr)
 library(ggplot2)
 library(readr)
-library(geosphere)
+#library(geosphere)
 
 
 ######### Replace mmr with average
@@ -83,7 +83,7 @@ df <- merge(df, mmr_2022, by = "County", all = TRUE)
 df <- merge(df, mmr_2021, by = "County", all = TRUE)
 df <- merge(df, mmr_2020, by = "County", all = TRUE)
 
-names(df)
+
 
 # Compute 5-year average (2020–2024)
 
