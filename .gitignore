@@ -3,5 +3,4 @@
 .RData
 .Ruserdata
 ProcessedData/
-/weekly_flows/
-RawData/
+RawData/weekly_flows/
