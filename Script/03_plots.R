@@ -119,7 +119,7 @@ figure01 <- function(
   row_plot <- plot_grid(p1, p2_clean, nrow = 1, rel_widths = c(1, 1))
   final_plot <- plot_grid(row_plot, legend, nrow = 1, rel_widths = c(2, 0.4))
   
-  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_Ro18.png")
+  file_name <- paste0(out_dir, "figure01_outbreak_2ndGen_lin_Ro18_visitores_ji.png")
   ggsave(file_name, final_plot, width = 12, height = 6, dpi = 400)
   
 }
